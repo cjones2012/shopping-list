@@ -2,8 +2,6 @@ import React, {Component} from 'react';
 import { Button, Dropdown, Form, Grid, Header, Input, Label, Segment } from 'semantic-ui-react';
 
 class AddShoppingListItemForm extends Component {
-    state = {};
-
     render() {
         const { stores } = this.props;
         const { shoppingListItem } = this.props;
@@ -14,6 +12,7 @@ class AddShoppingListItemForm extends Component {
                     <Header as='h2'>What do we need?</Header>
                 </Label>
                 <Form onSubmit={this.props.handleAddShoppingListItemSubmit}>
+                {/* <Form onSubmit={() => this.props.handleAddShoppingListItemSubmit()}> */}
                     <Form.Field>
                         <label>Item</label>
                         <Input type="text" value={shoppingListItem.name} onChange={this.props.onItemNameChange} name="item" placeholder="Enter item" />

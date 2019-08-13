@@ -4,7 +4,6 @@ import { Button, Form, Header, Label, Segment } from 'semantic-ui-react';
 
 class ShoppingLists extends Component {
     render() {
-        const { stores } = this.props;
         const {shoppingLists } = this.props;
         
         return (
@@ -18,7 +17,6 @@ class ShoppingLists extends Component {
                             <Form.Field key={shoppingList.store}>
                                 <ShoppingList
                                     shoppingList={shoppingList}
-                                    stores={stores}
                                     handleAccordionClick={this.props.handleAccordionClick}
                                     handleCheck={this.props.handleCheck}
                                 />

@@ -1,44 +1,54 @@
 import React, {Component} from 'react';
+import { Container, Grid, Segment } from 'semantic-ui-react';
+import api from '../apis/shoppingList';
 import ShoppingLists from './ShoppingLists';
 import AddShoppingItemForm from './AddShoppingItemForm';
-import { Container, Grid, Segment } from 'semantic-ui-react';
 
 class App extends Component {
     state = {
-        stores: [
-            { key: 1, text: 'Walmart', value: 1 },
-            { key: 2, text: 'Lowes', value: 2 },
-            { key: 3, text: 'Aldi', value: 3 }
-        ],
-        shoppingLists: [
-            { store: 1,
-              active: true,  
-              items: [
-                  { name: 'Bread', quantity: 1, isChecked: false },
-                  { name: 'Cheese', quantity: 1, isChecked: false },
-              ]
-            },
-            { store: 2,
-              active: true,
-              items: [
-                  { name: 'Nails', quantity: 2, isChecked: false },
-                  { name: 'Wood Glue', quantity: 1, isChecked: false },
-                ]
-              },
-            { store: 3,
-              active: true,
-              items: [
-                  { name: 'Milk', quantity: 2, isChecked: false },
-                  { name: 'Bacon', quantity: 3, isChecked: false },
-                ]
-            }
-        ],
+        stores: [],
+        shoppingLists: [],
         shoppingListItem: {
             name: '',
             quantity: 0,
             selectedStore: null
         }
     };
+
+    constructor(props) {
+        super(props);
+        this.loadStores()
+        this.loadShoppingLists();
+    }
+
+    loadStores = async () => {
+        const { stores } = { ...this.state };
+        const response = await api.get('/api/stores');
+
+        for (let i = 0; i < response.data.length; i++) {
+            let store = response.data[i];
+            stores.push({ key: store.id, text: store.name, value: store.name });
+        }
+
+        this.setState({ stores });
+    }
+
+    loadShoppingLists = async () => {
+        const { shoppingLists } = { ...this.state };
+        const response = await api.get('/api/shopping-lists');
+        
+        response.data.sort((a, b) => a.store > b.store ? 1 : -1);        
+        for (let i = 0; i < response.data.length; i++) {
+            let shoppingList = response.data[i];
+            shoppingLists.push({
+                active: true,
+                store: shoppingList.store,
+                items: shoppingList.items
+            });
+        }
+
+        this.setState({ shoppingLists });
+    }
 
     onItemNameChange = event => {
         let { shoppingListItem } = { ...this.state };
@@ -96,7 +106,7 @@ class App extends Component {
         this.setState({ shoppingLists: shoppingLists });
     }
 
-    handleAddShoppingListItemSubmit = event => {
+    handleAddShoppingListItemSubmit = (event) => {
         event.preventDefault();
         let { shoppingLists, shoppingListItem } = { ...this.state };
         let storeFound = false;
@@ -112,12 +122,16 @@ class App extends Component {
                     }
                 }
                 if (!itemFound) {
+                    let item = { name: shoppingListItem.name, quantity: shoppingListItem.quantity };
                     shoppingLists[i].items.push({ name: shoppingListItem.name, quantity: shoppingListItem.quantity, isChecked: false });
+                    console.log(shoppingLists[i]);
+                    //api.put('/api/shopping-lists');
                 }
             }
         }
         if (!storeFound) {
             shoppingLists.push({ store: shoppingListItem.selectedStore, active: true, items: [{ name: shoppingListItem.name, quantity: shoppingListItem.quantity, isChecked: false }]});
+            //api.post('/api/shopping-lists');
         }
 
         this.setState({ shoppingLists, shoppingListItem: { name: '', quantity: 0, selectedStore: null }})
@@ -158,7 +172,6 @@ class App extends Component {
                     <Grid stackable>
                         <Grid.Column width={6}>
                             <ShoppingLists
-                                stores={this.state.stores}
                                 shoppingLists={this.state.shoppingLists}
                                 handleAccordionClick={this.handleAccordionClick}
                                 handleCheck={this.handleCheck}
