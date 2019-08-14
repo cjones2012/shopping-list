@@ -12,7 +12,6 @@ class AddShoppingListItemForm extends Component {
           <Header as="h2">What do we need?</Header>
         </Label>
         <Form onSubmit={this.props.handleAddShoppingListItemSubmit}>
-          {/* <Form onSubmit={() => this.props.handleAddShoppingListItemSubmit()}> */}
           <Form.Field>
             <label>Item</label>
             <Input

@@ -82,10 +82,12 @@ class App extends Component {
 
     onStoreAdd = (e, { value }) => {
         let { stores, shoppingListItem } = { ...this.state };
-
+        
         api.post('/api/stores', { name: value }).then(response => {
-            stores.push({ key: response.data.id, text: value, value: value });
             shoppingListItem.selectedStore = value;
+            stores.push({ key: response.data.id, text: value, value: value });
+            //stores.sort((a, b) => (a.name > b.name ? 1 : -1));
+            
             this.setState({
                 stores,
                 shoppingListItem
@@ -94,9 +96,13 @@ class App extends Component {
     };
 
     onStoreChange = (event, { value }) => {
-        let { shoppingListItem } = { ...this.state };
-        shoppingListItem.selectedStore = value;
-        this.setState({ shoppingListItem });
+        let { shoppingListItem, stores } = { ...this.state };
+        for (let i = 0; i < stores.length; i++) {
+            if (stores[i].value === value) {
+                shoppingListItem.selectedStore = value;
+                this.setState({ shoppingListItem });
+            }
+        }
     };
 
     handleAccordionClick = (e, titleProps) => {
@@ -125,7 +131,6 @@ class App extends Component {
                         itemFound = true;
                         shoppingLists[i].items[k].quantity += shoppingListItem.quantity;
                         api.put('/api/shopping-lists', shoppingLists[i]).then(response => {
-                            console.log(response);
                             this.setState({ shoppingLists, shoppingListItem: { name: '', quantity: 0, selectedStore: null } });
                         });
                     }
@@ -152,7 +157,8 @@ class App extends Component {
             };
 
             api.post('/api/shopping-lists', newShoppingList).then(response => {
-                shoppingLists.push({ ...newShoppingList, id: response.data.id });
+                shoppingLists.push({ ...newShoppingList, id: response.data.id })
+                shoppingLists.sort((a, b) => (a.store > b.store ? 1 : -1));
                 this.setState({ shoppingLists, shoppingListItem: { name: '', quantity: 0, selectedStore: null } });
             });
         }
@@ -176,14 +182,35 @@ class App extends Component {
     handleRemoveShoppingListItemSubmit = event => {
         event.preventDefault();
         let { shoppingLists } = { ...this.state };
+        let shoppingListsToUpdate = [];
+        let shoppingListsToDelete = [];
 
         for (let i = 0; i < shoppingLists.length; i++) {
-            shoppingLists[i].items = shoppingLists[i].items.filter(item => !item.isChecked);
+            var checkedItems = shoppingLists[i].items.filter(item => item.isChecked);
+            var unCheckedItems = shoppingLists[i].items.filter(item => !item.isChecked);
+            
+            if (checkedItems.length === shoppingLists[i].items.length) {
+                shoppingLists[i].items = unCheckedItems;
+                shoppingListsToDelete.push(shoppingLists[i]);
+            }
+            else if (unCheckedItems.length !== shoppingLists[i].items.length) {
+                shoppingLists[i].items = unCheckedItems;
+                shoppingListsToUpdate.push(shoppingLists[i]);
+            }
+        }
+        shoppingLists = shoppingLists.filter(prop => prop.items.length !== 0);
+        
+        if (shoppingListsToUpdate.length > 0) {
+            api.put('/api/shopping-lists/UpdateShoppingLists', shoppingListsToUpdate).then(response => {
+                this.setState({ shoppingLists });
+            });
         }
 
-        shoppingLists = shoppingLists.filter(prop => prop.items.length > 0);
-
-        this.setState({ shoppingLists });
+        if (shoppingListsToDelete.length > 0) {
+            api.delete('/api/shopping-lists/DeleteShoppingLists', { data: shoppingListsToDelete }).then(response => {
+                this.setState({ shoppingLists });
+            });
+        }
     };
 
     render() {
