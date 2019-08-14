@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import { Container, Grid, Segment } from 'semantic-ui-react';
 import api from '../apis/shoppingList';
 import ShoppingLists from './ShoppingLists';
@@ -17,7 +17,7 @@ class App extends Component {
 
     constructor(props) {
         super(props);
-        this.loadStores()
+        this.loadStores();
         this.loadShoppingLists();
     }
 
@@ -25,42 +25,44 @@ class App extends Component {
         const { stores } = { ...this.state };
         const response = await api.get('/api/stores');
 
+        response.data.sort((a, b) => (a.name > b.name ? 1 : -1));
         for (let i = 0; i < response.data.length; i++) {
             let store = response.data[i];
             stores.push({ key: store.id, text: store.name, value: store.name });
         }
 
         this.setState({ stores });
-    }
+    };
 
     loadShoppingLists = async () => {
         const { shoppingLists } = { ...this.state };
         const response = await api.get('/api/shopping-lists');
-        
-        response.data.sort((a, b) => a.store > b.store ? 1 : -1);        
+
+        response.data.sort((a, b) => (a.store > b.store ? 1 : -1));
         for (let i = 0; i < response.data.length; i++) {
             let shoppingList = response.data[i];
             shoppingLists.push({
-                active: true,
+                id: shoppingList.id,
+                active: shoppingList.active,
                 store: shoppingList.store,
                 items: shoppingList.items
             });
         }
 
         this.setState({ shoppingLists });
-    }
+    };
 
     onItemNameChange = event => {
         let { shoppingListItem } = { ...this.state };
-        shoppingListItem.name = event.target.value;        
+        shoppingListItem.name = event.target.value;
         this.setState({ shoppingListItem });
-    }
+    };
 
     onIncreaseQuantity = event => {
         let { shoppingListItem } = { ...this.state };
         shoppingListItem.quantity++;
         this.setState({ shoppingListItem });
-    }
+    };
 
     onDecreaseQuantity = event => {
         let { shoppingListItem } = { ...this.state };
@@ -68,7 +70,7 @@ class App extends Component {
             shoppingListItem.quantity--;
             this.setState({ shoppingListItem });
         }
-    }
+    };
 
     onQuantityChange = event => {
         let { shoppingListItem } = { ...this.state };
@@ -76,17 +78,18 @@ class App extends Component {
             shoppingListItem.quantity = event.target.value * 0;
             this.setState({ shoppingListItem });
         }
-    }
+    };
 
     onStoreAdd = (e, { value }) => {
         let { stores, shoppingListItem } = { ...this.state };
 
-        stores.push({ key: stores.length + 1, text: value, value: stores.length + 1 });
-        shoppingListItem.selectedStore = stores.length;
-              
-        this.setState({
-            stores,
-            shoppingListItem
+        api.post('/api/stores', { name: value }).then(response => {
+            stores.push({ key: response.data.id, text: value, value: value });
+            shoppingListItem.selectedStore = value;
+            this.setState({
+                stores,
+                shoppingListItem
+            });
         });
     };
 
@@ -98,20 +101,22 @@ class App extends Component {
 
     handleAccordionClick = (e, titleProps) => {
         let { shoppingLists } = this.state;
-        let index = shoppingLists.map(list => {
-            return list.store;
-        }).indexOf(titleProps.store);
+        let index = shoppingLists
+            .map(list => {
+                return list.store;
+            })
+            .indexOf(titleProps.store);
         shoppingLists[index].active = !shoppingLists[index].active;
-        
-        this.setState({ shoppingLists: shoppingLists });
-    }
 
-    handleAddShoppingListItemSubmit = (event) => {
+        this.setState({ shoppingLists: shoppingLists });
+    };
+
+    handleAddShoppingListItemSubmit = event => {
         event.preventDefault();
         let { shoppingLists, shoppingListItem } = { ...this.state };
         let storeFound = false;
         let itemFound = false;
-        
+
         for (let i = 0; i < shoppingLists.length; i++) {
             if (shoppingLists[i].store === shoppingListItem.selectedStore) {
                 storeFound = true;
@@ -119,23 +124,39 @@ class App extends Component {
                     if (shoppingLists[i].items[k].name === shoppingListItem.name) {
                         itemFound = true;
                         shoppingLists[i].items[k].quantity += shoppingListItem.quantity;
+                        api.put('/api/shopping-lists', shoppingLists[i]).then(response => {
+                            console.log(response);
+                            this.setState({ shoppingLists, shoppingListItem: { name: '', quantity: 0, selectedStore: null } });
+                        });
                     }
                 }
                 if (!itemFound) {
-                    let item = { name: shoppingListItem.name, quantity: shoppingListItem.quantity };
-                    shoppingLists[i].items.push({ name: shoppingListItem.name, quantity: shoppingListItem.quantity, isChecked: false });
-                    console.log(shoppingLists[i]);
-                    //api.put('/api/shopping-lists');
+                    shoppingLists[i].items.push({
+                        id: shoppingListItem.id,
+                        name: shoppingListItem.name,
+                        quantity: shoppingListItem.quantity,
+                        isChecked: false
+                    });
+
+                    api.put('/api/shopping-lists', shoppingLists[i]).then(response => {
+                        this.setState({ shoppingLists, shoppingListItem: { name: '', quantity: 0, selectedStore: null } });
+                    });
                 }
             }
         }
         if (!storeFound) {
-            shoppingLists.push({ store: shoppingListItem.selectedStore, active: true, items: [{ name: shoppingListItem.name, quantity: shoppingListItem.quantity, isChecked: false }]});
-            //api.post('/api/shopping-lists');
-        }
+            var newShoppingList = {
+                store: shoppingListItem.selectedStore,
+                active: true,
+                items: [{ name: shoppingListItem.name, quantity: shoppingListItem.quantity, isChecked: false }]
+            };
 
-        this.setState({ shoppingLists, shoppingListItem: { name: '', quantity: 0, selectedStore: null }})
-    }
+            api.post('/api/shopping-lists', newShoppingList).then(response => {
+                shoppingLists.push({ ...newShoppingList, id: response.data.id });
+                this.setState({ shoppingLists, shoppingListItem: { name: '', quantity: 0, selectedStore: null } });
+            });
+        }
+    };
 
     handleCheck = (store, shoppingListItem) => {
         let { shoppingLists } = { ...this.state };
@@ -150,7 +171,7 @@ class App extends Component {
         }
 
         this.setState({ shoppingLists });
-    }
+    };
 
     handleRemoveShoppingListItemSubmit = event => {
         event.preventDefault();
@@ -159,11 +180,11 @@ class App extends Component {
         for (let i = 0; i < shoppingLists.length; i++) {
             shoppingLists[i].items = shoppingLists[i].items.filter(item => !item.isChecked);
         }
-        
+
         shoppingLists = shoppingLists.filter(prop => prop.items.length > 0);
 
         this.setState({ shoppingLists });
-    }
+    };
 
     render() {
         return (
@@ -178,7 +199,7 @@ class App extends Component {
                                 handleRemoveShoppingListItemSubmit={this.handleRemoveShoppingListItemSubmit}
                             />
                         </Grid.Column>
-                        <Grid.Column width={4}></Grid.Column>
+                        <Grid.Column width={4} />
                         <Grid.Column width={6}>
                             <AddShoppingItemForm
                                 stores={this.state.stores}
