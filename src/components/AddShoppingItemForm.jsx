@@ -29,6 +29,7 @@ class AddShoppingListItemForm extends Component {
               search
               selection
               allowAdditions
+              selectOnBlur={false}
               options={stores}
               value={shoppingListItem.selectedStore}
               onAddItem={this.props.onStoreAdd}
