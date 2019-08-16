@@ -7,7 +7,7 @@ class AddShoppingListItemForm extends Component {
     const { shoppingListItem } = this.props;
 
     return (
-      <Segment padded>
+      <Segment padded='very'>
         <Label attached="top">
           <Header as="h2">What do we need?</Header>
         </Label>

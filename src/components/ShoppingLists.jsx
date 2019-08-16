@@ -7,11 +7,11 @@ class ShoppingLists extends Component {
         const {shoppingLists } = this.props;
         
         return (
-            <Segment padded>
+            <Segment padded='very'>
                 <Label attached='top'>
                     <Header as='h2'>Shopping Lists</Header>
                 </Label>
-                <Form>
+                <Form onSubmit={this.props.handleRemoveShoppingListItemSubmit}>
                     {shoppingLists.map(shoppingList => {
                         return (
                             <Form.Field key={shoppingList.store}>
@@ -26,7 +26,7 @@ class ShoppingLists extends Component {
                     
                     {shoppingLists.length > 0 &&
                         <Form.Field>
-                            <Button type="submit" primary fluid onClick={this.props.handleRemoveShoppingListItemSubmit}>Remove Selected</Button>
+                            <Button type='submit' primary fluid>Remove Selected</Button>
                         </Form.Field>
                     }
                 </Form>
