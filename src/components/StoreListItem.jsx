@@ -11,12 +11,12 @@ class StoreListItem extends Component {
                     <Grid verticalAlign='middle'>
                         <Grid.Column>
                             <Checkbox 
-                            checked={store.isChecked}
-                            store={store}
-                            onChange={this.props.handleStoreCheck} />
+                                checked={store.isChecked}
+                                store={store}
+                                onChange={this.props.handleStoreCheck} />
                         </Grid.Column>
                         <Grid.Column>
-                            <Input type='text' onChange={this.props.onStoreChange} value={store.name} />
+                            <Input type='text' onChange={this.props.onStoreChange} store={store} value={store.name} />
                         </Grid.Column>
                     </Grid>
                 </Segment>
