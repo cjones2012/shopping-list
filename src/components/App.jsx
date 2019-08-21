@@ -6,7 +6,7 @@ import Home from './Home';
 import Navbar from './Navbar';
 import StoreList from './StoreList';
 
-class App extends Component {
+export default class App extends Component {
     state = {
         activeItem: pages.STORES
     }
@@ -28,5 +28,3 @@ class App extends Component {
         );
     }
 }
-
-export default App;

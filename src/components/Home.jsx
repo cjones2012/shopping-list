@@ -4,7 +4,7 @@ import api from '../apis/shoppingList';
 import AddShoppingItemForm from './AddShoppingItemForm';
 import ShoppingLists from './ShoppingLists';
 
-class Home extends Component {
+export default class Home extends Component {
     state = {
         stores: [],
         shoppingLists: [],
@@ -241,5 +241,3 @@ class Home extends Component {
         );
     }
 }
-
-export default Home;

@@ -1,24 +1,23 @@
-import React, { Component } from 'react';
-import { Button, Input, Modal } from 'semantic-ui-react';
+import React from 'react';
+import { Button, Modal } from 'semantic-ui-react';
 
-class AddStoreModal extends Component { 
-    render() {
-        return (
-            <>
-                <Button primary floated='right' size='large' onClick={this.props.toggleModal}>Add Store</Button>
-                <Modal dimmer='blurring' size='mini' open={this.props.modalOpen}>
-                    <Modal.Header>Add Store</Modal.Header>
-                    <Modal.Content>
-                        <Input type='text' placeholder='Enter store' value={this.props.newStore} onChange={this.props.onNewStoreChange} />
-                    </Modal.Content>
-                    <Modal.Actions>
-                        <Button onClick={this.props.toggleModal}>Close</Button>
-                        <Button primary disabled={this.props.newStore === ''} onClick={this.props.handleSubmitNewStore}>Submit</Button>
-                    </Modal.Actions>
-                </Modal>
-            </>
-        );
-    }
+const AddStoreModal = props => {     
+    const { modalOpen, toggleModal, newStoreInputRef, newStore, onKeyDown, onNewStoreChange, handleSubmitNewStore} = props;
+    
+    return (
+        <Modal dimmer='blurring' size='mini' open={modalOpen}>
+            <Modal.Header>Add Store</Modal.Header>
+            <Modal.Content>
+            <div className="ui input">
+                <input type='text' placeholder='Enter store' value={newStore} ref={newStoreInputRef} onKeyDown={onKeyDown} onChange={onNewStoreChange} />
+            </div>
+            </Modal.Content>
+            <Modal.Actions>
+                <Button onClick={toggleModal}>Close</Button>
+                <Button type='submit' primary disabled={newStore === ''} onClick={handleSubmitNewStore}>Submit</Button>    
+            </Modal.Actions>
+        </Modal>
+    );
 }
 
 export default AddStoreModal;

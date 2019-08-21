@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
-import { Button, Checkbox, Confirm, Header, Input, Label, Segment, Table } from 'semantic-ui-react';
+import { Button, Confirm, Header, Label, Segment, Table } from 'semantic-ui-react';
 import api from '../apis/shoppingList';
 import { actions } from '../constants';
 import AddStoreModal from './AddStoreModal';
+import StoreListItem from './StoreListItem';
 
-class StoreList extends Component {
+export default class StoreList extends Component {
     state = {
         action: '',
         confirmOpen: false,
@@ -105,11 +106,27 @@ class StoreList extends Component {
     }
 
     toggleModal = () => {
-        this.setState({ modalOpen: !this.state.modalOpen });
+        this.setState({ modalOpen: !this.state.modalOpen }, () => {
+            if (this.state.modalOpen) {
+                this.ref.focus();
+            } else {
+                this.setState({ newStore: '' });
+            }
+        });
+    }
+
+    onKeyDown = event => {
+        if (event.key === 'Enter') {
+            this.handleSubmitNewStore();
+        }
     }
 
     onNewStoreChange = event => {
         this.setState({ newStore: event.target.value });
+    }
+
+    handleRef = component => {
+        this.ref = component;
     }
 
     handleSubmitNewStore = event => {
@@ -121,7 +138,7 @@ class StoreList extends Component {
                 stores.push({ id: response.data.id, name: this.state.newStore, isChecked: false });
                 originalStores.push({ id: response.data.id, name: this.state.newStore, isChecked: false });
                 stores.sort((a, b) => (a.name > b.name ? 1 : -1));
-                this.setState({ originalStores, stores, newStore: '' });
+                this.setState({ originalStores, stores });
                 this.toggleModal();
             });
         }
@@ -129,6 +146,8 @@ class StoreList extends Component {
 
     render() {
         const { stores } = { ...this.state };
+        const disableRemove = stores.filter(store => store.isChecked).length === 0;
+        const disableUpdate = this.state.storesToUpdate.length <= 0;
 
         return (
             <Segment padded='very'>
@@ -144,32 +163,40 @@ class StoreList extends Component {
                     </Table.Header>
                     <Table.Body>
                         {stores.map(store => {
-                            return (
-                                <Table.Row key={store.id}>
-                                    <Table.Cell collapsing>
-                                        <Checkbox
-                                            slider
-                                            checked={store.isChecked}
-                                            store={store}
-                                            onChange={this.handleStoreCheck} />
-                                    </Table.Cell>
-                                    <Table.Cell>
-                                        <Input type='text' onChange={this.onStoreChange} store={store} value={store.name} />
-                                    </Table.Cell>
-                                </Table.Row>
-                            );
+                            return <StoreListItem key={store.id} store={store} onStoreChange={this.onStoreChange} handleStoreCheck={this.handleStoreCheck} />;
                         })}
                     </Table.Body>
                     <Table.Footer fullWidth>
                         <Table.Row>
                             <Table.HeaderCell />
                             <Table.HeaderCell>
-                                <AddStoreModal modalOpen={this.state.modalOpen} newStore={this.state.newStore} toggleModal={this.toggleModal} onNewStoreChange={this.onNewStoreChange} handleSubmitNewStore={this.handleSubmitNewStore} />
-                                <Button color='red' size='large' onClick={() => this.toggleConfirm(actions.DELETE)} disabled={stores.filter(store => store.isChecked).length === 0}>
+                                <Button type='button' primary floated='right' size='large'
+                                    onClick={this.toggleModal}>
+                                    Add Store
+                                </Button>
+                                <AddStoreModal
+                                    modalOpen={this.state.modalOpen} 
+                                    newStore={this.state.newStore} 
+                                    newStoreInputRef={this.handleRef} 
+                                    toggleModal={this.toggleModal} 
+                                    onKeyDown={this.onKeyDown} 
+                                    onNewStoreChange={this.onNewStoreChange} 
+                                    handleSubmitNewStore={this.handleSubmitNewStore} />
+                                <Button color='red' size='large' 
+                                    onClick={() => this.toggleConfirm(actions.DELETE)} 
+                                    disabled={disableRemove}>
                                     Remove Selected
                                 </Button>
-                                <Button primary size='large' onClick={() => this.toggleConfirm(actions.SAVE)} disabled={this.state.storesToUpdate.length <= 0}>Save Changes</Button>
-                                <Confirm open={this.state.confirmOpen} onConfirm={this.handleConfirm} onCancel={() => this.toggleConfirm()} content='Are you sure you would like to apply these changes?' />
+                                <Button primary size='large'
+                                    onClick={() => this.toggleConfirm(actions.SAVE)}
+                                    disabled={disableUpdate}>
+                                    Save Changes
+                                </Button>
+                                <Confirm
+                                    open={this.state.confirmOpen} 
+                                    onConfirm={this.handleConfirm} 
+                                    onCancel={() => this.toggleConfirm()} 
+                                    content='Are you sure you would like to apply these changes?' />
                             </Table.HeaderCell>
                         </Table.Row>
                     </Table.Footer>
@@ -178,5 +205,3 @@ class StoreList extends Component {
         );
     }
 }
-
-export default StoreList;

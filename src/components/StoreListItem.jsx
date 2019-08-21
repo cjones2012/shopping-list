@@ -1,28 +1,23 @@
-import React, { Component } from 'react';
-import { Checkbox, Grid, Input, Segment } from 'semantic-ui-react';
+import React from 'react';
+import { Checkbox, Input, Table } from 'semantic-ui-react';
 
-class StoreListItem extends Component {   
-    render() {
-        const { store } = this.props;
-
-        return (
-            <Grid.Column>
-                <Segment padded>
-                    <Grid verticalAlign='middle'>
-                        <Grid.Column>
-                            <Checkbox 
-                                checked={store.isChecked}
-                                store={store}
-                                onChange={this.props.handleStoreCheck} />
-                        </Grid.Column>
-                        <Grid.Column>
-                            <Input type='text' onChange={this.props.onStoreChange} store={store} value={store.name} />
-                        </Grid.Column>
-                    </Grid>
-                </Segment>
-            </Grid.Column>
-        );
-    }
-}
+const StoreListItem = props => {
+    const { store, onStoreChange, handleStoreCheck } = props;
+    
+    return (
+        <Table.Row key={store.id}>
+            <Table.Cell collapsing>
+                <Checkbox
+                    slider
+                    checked={store.isChecked}
+                    store={store}
+                    onChange={handleStoreCheck} />
+            </Table.Cell>
+            <Table.Cell>
+                <Input type='text' onChange={onStoreChange} store={store} value={store.name} />
+            </Table.Cell>
+        </Table.Row>
+    );
+};
 
 export default StoreListItem;
